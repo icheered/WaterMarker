@@ -16,6 +16,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/nfnt/resize"
 )
 
 func main() {
@@ -28,11 +30,12 @@ func main() {
 	fmt.Println("For help: run the program from command line with the -h flag")
 	fmt.Println("Having issues? Please let me know at Tjeerd992@gmail.com")
 	fmt.Println("")
-	watermarkOpacity, watermarkLocation, watermarkFile, sourceDir, targetDir, force := getParameters()
+	watermarkOpacity, watermarkLocation, watermarkScale, watermarkFile, sourceDir, targetDir, force := getParameters()
 
 	fmt.Println("Using following parameters:")
 	fmt.Printf("- Opacity:          %d\n", watermarkOpacity)
 	fmt.Printf("- Location:         %s\n", watermarkLocation)
+	fmt.Printf("- Scale:            %s\n", watermarkScale)
 	fmt.Printf("- Watermark:        %s\n", watermarkFile)
 	fmt.Printf("- Source directory: %s\n", sourceDir)
 	fmt.Printf("- Target directory: %s\n", targetDir)
@@ -80,7 +83,7 @@ func main() {
 	wg.Add(len(files))
 	start := time.Now()
 	for _, file := range files {
-		go func(file os.FileInfo, watermark image.Image, mask image.Image, watermarkLocation string, sourceDir string, targetDir string) {
+		go func(file os.FileInfo, watermark image.Image, mask image.Image, watermarkLocation string, watermarkScale float64, sourceDir string, targetDir string) {
 			defer wg.Done()
 			if !(strings.HasSuffix(file.Name(), ".jpg")) && !(strings.HasSuffix(file.Name(), ".jpeg")) {
 				fmt.Printf("Skipping photo '%s' because it is not a .jpg or .jpeg\n", file.Name())
@@ -90,7 +93,10 @@ func main() {
 			srcImage := openImage(path.Join(sourceDir, file.Name()), "jpeg")
 
 			imgSize := srcImage.Bounds()
-			wmSize := watermark.Bounds()
+
+			scaledWatermark := resize.Resize(0, uint(watermarkScale*float64(imgSize.Dy())), watermark, resize.NearestNeighbor)
+
+			wmSize := scaledWatermark.Bounds()
 			canvas := image.NewRGBA(imgSize)
 			var watermarkOffset image.Point
 			if watermarkLocation == "left" {
@@ -100,10 +106,10 @@ func main() {
 			}
 
 			draw.Draw(canvas, imgSize, srcImage, image.Point{0, 0}, draw.Src)
-			draw.DrawMask(canvas, imgSize.Add(watermarkOffset), watermark, image.Point{0, 0}, mask, image.Point{0, 0}, draw.Over)
+			draw.DrawMask(canvas, imgSize.Add(watermarkOffset), scaledWatermark, image.Point{0, 0}, mask, image.Point{0, 0}, draw.Over)
 
 			saveImage(canvas, targetDir, file.Name())
-		}(file, watermark, mask, watermarkLocation, sourceDir, targetDir)
+		}(file, watermark, mask, watermarkLocation, watermarkScale, sourceDir, targetDir)
 	}
 	wg.Wait()
 	elapsed := time.Since(start)
@@ -123,9 +129,10 @@ func getFiles(dir string) []os.FileInfo {
 	return files
 }
 
-func getParameters() (int, string, string, string, string, bool) {
-	paramOpacity := flag.Int("opacity", 60, "Watermark opacity between 0 and 100")
+func getParameters() (int, string, float64, string, string, string, bool) {
+	paramOpacity := flag.Int("opacity", 70, "Watermark opacity between 0 and 100")
 	paramLocation := flag.String("location", "right", "Location of watermark [left, right]")
+	paramScale := flag.Float64("scale", 0.2, "Specify the size of the watermark as a portion of the image (between 0 and 1)")
 	paramWatermark := flag.String("watermark", "watermark.png", "Name of PNG image to be used as watermark")
 	paramSourceDir := flag.String("source", "photos", "Source directory (location to find un-watermarked photos)")
 	paramTargetDir := flag.String("target", "watermarked", "Target directory (location to put watermarked photos")
@@ -134,12 +141,13 @@ func getParameters() (int, string, string, string, string, bool) {
 	flag.Parse()
 	opacity := *paramOpacity
 	location := *paramLocation
+	scale := *paramScale
 	watermark := *paramWatermark
 	sourceDir := *paramSourceDir
 	targetDir := *paramTargetDir
 	force := *paramForce
 
-	return opacity, location, watermark, sourceDir, targetDir, force
+	return opacity, location, scale, watermark, sourceDir, targetDir, force
 }
 
 func saveImage(img image.Image, pname, fname string) error {
