@@ -19,11 +19,11 @@ import (
 )
 
 func main() {
-	fmt.Println("************************************************************")
-	fmt.Println("************************************************************")
-	fmt.Println("WaterMarker v1.0 - Written by Tjeerd Bakker (ICheered) in Go")
-	fmt.Println("************************************************************")
-	fmt.Println("************************************************************")
+	fmt.Println("**************************************************************************")
+	fmt.Println("*                                                                        *")
+	fmt.Println("*      WaterMarker v1.0 - Written by Tjeerd Bakker (ICheered) in Go      *")
+	fmt.Println("*                                                                        *")
+	fmt.Println("**************************************************************************")
 	fmt.Println("")
 	fmt.Println("For help: run the program from command line with the -h flag")
 	fmt.Println("Having issues? Please let me know at Tjeerd992@gmail.com")
@@ -83,7 +83,7 @@ func main() {
 		go func(file os.FileInfo, watermark image.Image, mask image.Image, watermarkLocation string, sourceDir string, targetDir string) {
 			defer wg.Done()
 			if !(strings.HasSuffix(file.Name(), ".jpg")) && !(strings.HasSuffix(file.Name(), ".jpeg")) {
-				fmt.Printf("Skipping photo '%s' because it is not a .jpg or .jpeg\n", file)
+				fmt.Printf("Skipping photo '%s' because it is not a .jpg or .jpeg\n", file.Name())
 				return
 			}
 
