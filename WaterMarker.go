@@ -108,8 +108,11 @@ func main() {
 	wg.Wait()
 	elapsed := time.Since(start)
 
-	fmt.Printf("\nAll done! Editted %d files in %s\n", len(files), elapsed)
-
+	fmt.Printf("\nAll done! Editted %d files in %s", len(files), elapsed)
+	fmt.Print("\n--------------------------------------\n")
+	fmt.Println("")
+	fmt.Println("Press any key to exit")
+	fmt.Scanln()
 }
 
 func getFiles(dir string) []os.FileInfo {
