@@ -35,7 +35,7 @@ func main() {
 	fmt.Println("Using following parameters:")
 	fmt.Printf("- Opacity:          %d\n", watermarkOpacity)
 	fmt.Printf("- Location:         %s\n", watermarkLocation)
-	fmt.Printf("- Scale:            %s\n", watermarkScale)
+	fmt.Printf("- Scale:            %1.1f\n", watermarkScale)
 	fmt.Printf("- Watermark:        %s\n", watermarkFile)
 	fmt.Printf("- Source directory: %s\n", sourceDir)
 	fmt.Printf("- Target directory: %s\n", targetDir)
