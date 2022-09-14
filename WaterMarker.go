@@ -9,7 +9,7 @@ import (
 	"image/draw"
 	"image/jpeg"
 	"image/png"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"os"
 	"path"
@@ -121,12 +121,20 @@ func main() {
 	fmt.Scanln()
 }
 
-func getFiles(dir string) []os.FileInfo {
-	files, err := ioutil.ReadDir(dir)
+func getFiles(dirname string) []os.FileInfo {
+	entries, err := os.ReadDir(dirname)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return files
+	infos := make([]fs.FileInfo, 0, len(entries))
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			log.Fatal(err)
+		}
+		infos = append(infos, info)
+	}
+	return infos
 }
 
 func getParameters() (int, string, float64, string, string, string, bool) {
