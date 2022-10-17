@@ -122,11 +122,11 @@ func (a *App) ProcessImages(watermarkPath, sourcefolderPath, targetfolderPath, w
 
 	elapsed := time.Since(start)
 	fmt.Print("Done: ", elapsed)
+
 	return returnStruct{Status: "success", Message: fmt.Sprintf("\nAll done! Editted %d files in %s", len(files), elapsed)}
 }
 
 func watermarkFile(file os.FileInfo, watermark image.Image, mask image.Image, watermarkPosition string, watermarkScale float64, sourcefolderPath string, targetfolderPath string) {
-	fmt.Print(watermarkPosition)
 	if !(strings.HasSuffix(file.Name(), ".jpg")) && !(strings.HasSuffix(file.Name(), ".jpeg")) {
 		fmt.Printf("Skipping photo '%s' because it is not a .jpg or .jpeg\n", file.Name())
 		return
@@ -197,6 +197,7 @@ func saveImage(img image.Image, pname, fname string) error {
 }
 
 func openImage(fname string) (image.Image, error) {
+	fmt.Print("Got here!" + fname)
 	inputfile, err := os.Open(fname)
 	if err != nil {
 		fmt.Print("Failed to open: " + fname)

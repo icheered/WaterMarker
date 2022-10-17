@@ -20,16 +20,14 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    height: 50px;
-    padding: 20px;
-    background: darkslategrey;
+    height: 30px;
+    color: black;
   }
   .line {
     border-bottom: 1px solid white;
     width: 100%;
-    margin-bottom: 30px;
   }
   a {
-    color: white;
+    color: black;
   }
 </style>

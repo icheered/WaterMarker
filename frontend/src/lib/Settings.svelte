@@ -1,31 +1,29 @@
 <script>
-  export let watermarkOpacity, watermarkScale, watermarkPosition;
+  export let watermarkOpacity, watermarkScale, watermarkPosition, changedSettings;
 
-  function changethis(e) {
-    console.log("Changing this");
-    console.log(e.target.value);
-    watermarkPosition = e.target.value;
+  function valuechanged() {
+    changedSettings = true;
   }
 </script>
 
 <div>
   <div class="row">
-    <div>Opacity</div>
-    <input class="textfield" type="text" bind:value={watermarkOpacity} min="0" max="100" />
+    <div class="text">Opacity</div>
+    <input class="textfield" type="text" bind:value={watermarkOpacity} on:change={valuechanged} min="0" max="100" />
   </div>
   <div>
     <input type="range" bind:value={watermarkOpacity} min="0" max="100" />
   </div>
 
   <div class="row">
-    <div>Scale</div>
-    <input class="textfield" type="text" bind:value={watermarkScale} min="0" max="100" />
+    <div class="text">Scale</div>
+    <input class="textfield" type="text" bind:value={watermarkScale} on:change={valuechanged} min="0" max="100" />
   </div>
   <div>
     <input type="range" bind:value={watermarkScale} min="0" max="100" />
   </div>
-
-  <select bind:value={watermarkPosition} on:change={changethis}>
+  <div>Watermark location</div>
+  <select bind:value={watermarkPosition} on:change={valuechanged}>
     <option value="bottom-right">Bottom-right</option>
     <option value="bottom-left">Bottom-left</option>
     <option value="top-right">Top-right</option>
@@ -40,11 +38,11 @@
     flex-direction: row;
     justify-content: center;
   }
-  .col {
-    display: flex;
-    flex-direction: column;
-  }
   .textfield {
     width: 25px;
+    margin-left: 10px;
+  }
+  .text {
+    padding-top: 3px;
   }
 </style>

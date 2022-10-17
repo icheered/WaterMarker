@@ -1,11 +1,6 @@
 <script>
-  import {
-    SelectFolder,
-    SelectFile,
-    ProcessImages,
-    GetNumberOfFiles,
-    FetchPreview,
-  } from "../../wailsjs/go/main/App.js";
+  import { SelectFolder, SelectFile, GetNumberOfFiles } from "../../wailsjs/go/main/App.js";
+  import Button from "../lib/Button.svelte";
 
   export let sourceFolderPath,
     targetFolderPath,
@@ -54,9 +49,9 @@
   }
 </script>
 
-<div>
+<div class="wrapper">
   <div>
-    <button on:click={selectSourceFolderPath}>Select image folder</button>
+    <Button text="Select Source Folder" callback={selectSourceFolderPath} />
     <div>
       {sourceFolderPath.match(/[^\/]+\/[^\/]+$/) ?? ""}
     </div>
@@ -65,24 +60,32 @@
     </div>
   </div>
   <div>
-    <button on:click={selectTargetFolderPath}>Select output folder</button>
+    <Button text="Select Target Folder" callback={selectTargetFolderPath} />
     <div>
       {targetFolderPath.match(/[^\/]+\/[^\/]+$/) ?? ""}
+    </div>
+    <div>
+      {numberOfTargetFiles ? numberOfTargetFiles + " files found" : ""}
     </div>
   </div>
 
   <div>
-    <button on:click={selectFilePath}>Select Watermark</button>
+    <Button text="Select Watermark" callback={selectFilePath} />
     <div>
       {watermarkPath.match(/[^\/]+\/[^\/]+$/) ?? ""}
     </div>
 
-    <img bind:this={watermarkpreviewImage} src="" alt="Watermark preview" />
+    <img class="watermarkpreview" bind:this={watermarkpreviewImage} src="" alt="Watermark preview" />
   </div>
 </div>
 
 <style>
   img {
     max-width: 100px;
+  }
+
+  .watermarkpreview {
+    min-height: 50px;
+    min-width: 160px;
   }
 </style>
