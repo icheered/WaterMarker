@@ -14,20 +14,20 @@
   const authorLink = "https://icheered.nl";
 
   // PARAMETERS
-  // let sourceFolderPath = "/home/tjbakker/Documents/dev/vscode/go/wails/testfiles/source";
-  // let targetFolderPath = "/home/tjbakker/Documents/dev/vscode/go/wails/testfiles/watermarked";
-  // let watermarkPath = "/home/tjbakker/Documents/dev/vscode/go/wails/testfiles/watermark.png";
+  // let sourceFolderPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/source";
+  // let targetFolderPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/watermarked";
+  // let watermarkPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/watermark.png";
 
   let sourceFolderPath = "";
   let targetFolderPath = "";
   let watermarkPath = "";
 
-  let watermarkOpacity = 50;
+  let watermarkOpacity = 80;
   let watermarkPosition = "bottom-right";
   let watermarkScale = 20;
 
   // INFORMATION
-  let changedSettings = false;
+  let changedSettings = true;
 
   let numberOfSourceFiles = 0;
   let numberOfTargetFiles = 0;
@@ -100,8 +100,8 @@
       sourceFolderPath,
       targetFolderPath,
       watermarkPosition,
-      watermarkOpacity,
-      watermarkScale
+      watermarkOpacity / 100,
+      watermarkScale / 100
     ).then((result) => {
       showLoader = false;
       if (result.status && result.status == "error") {
@@ -194,7 +194,7 @@
     border-radius: 20px;
     margin: 10px;
     box-shadow: 0px 0px 20px #4d5056;
-    width: 733.875px;
+    /* width: 733.875px; */
     height: 489.25px;
   }
 

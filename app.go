@@ -131,16 +131,15 @@ func watermarkFile(file os.FileInfo, watermark image.Image, mask image.Image, wa
 		fmt.Printf("Skipping photo '%s' because it is not a .jpg or .jpeg\n", file.Name())
 		return
 	}
-
 	fmt.Printf("Processing photo '%s'\n", file.Name())
 	srcImage, err := openImage(path.Join(sourcefolderPath, file.Name()))
 	if err != nil {
 		return
 	}
-
 	imgSize := srcImage.Bounds()
 
-	scaledWatermark := resize.Resize(0, uint(watermarkScale*float64(imgSize.Dy())), watermark, resize.NearestNeighbor)
+	imgheight := min(imgSize.Dx(), imgSize.Dy())
+	scaledWatermark := resize.Resize(0, uint(watermarkScale*float64(imgheight)), watermark, resize.NearestNeighbor)
 
 	wmSize := scaledWatermark.Bounds()
 	canvas := image.NewRGBA(imgSize)
@@ -159,15 +158,14 @@ func watermarkFile(file os.FileInfo, watermark image.Image, mask image.Image, wa
 
 	draw.Draw(canvas, imgSize, srcImage, image.Point{0, 0}, draw.Src)
 	draw.DrawMask(canvas, imgSize.Add(watermarkOffset), scaledWatermark, image.Point{0, 0}, mask, image.Point{0, 0}, draw.Over)
-
 	saveImage(canvas, targetfolderPath, file.Name())
-
 	fmt.Printf("Finished processing photo '%s'\n", file.Name())
 }
 
 func getFiles(dirname string) []os.FileInfo {
 	entries, err := os.ReadDir(dirname)
 	if err != nil {
+
 		log.Fatal(err)
 	}
 	infos := make([]fs.FileInfo, 0, len(entries))
@@ -197,7 +195,6 @@ func saveImage(img image.Image, pname, fname string) error {
 }
 
 func openImage(fname string) (image.Image, error) {
-	fmt.Print("Got here!" + fname)
 	inputfile, err := os.Open(fname)
 	if err != nil {
 		fmt.Print("Failed to open: " + fname)
@@ -221,4 +218,16 @@ func openImage(fname string) (image.Image, error) {
 		return image.NewUniform(color.Black), errors.New("Failed to open: " + fname + ". Not PNG/JPG/JPEG")
 	}
 	return srcimage, nil
+}
+
+func min(vars ...int) int {
+	min := vars[0]
+
+	for _, i := range vars {
+		if min > i {
+			min = i
+		}
+	}
+
+	return min
 }
