@@ -3,6 +3,8 @@
 Add a watermark to a whole bunch of photos.
 For a set of photos I needed a variant with watermark for distribution, and a set without watermark for promotion. Instead of exporting the photos twice (once with watermark, once without) this tool allows a much faster method of creating a duplicate set of photos that is watermarked.
 
+# TODO: Update readme for GUI
+
 ## How to use
 
 In a single folder, include:
