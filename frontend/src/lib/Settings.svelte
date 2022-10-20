@@ -12,15 +12,15 @@
     <input class="textfield" type="text" bind:value={watermarkOpacity} on:change={valuechanged} min="0" max="100" />
   </div>
   <div>
-    <input class="slider" type="range" bind:value={watermarkOpacity} min="0" max="100" />
+    <input class="slider" type="range" bind:value={watermarkOpacity} on:change={valuechanged} min="0" max="100" />
   </div>
 
   <div class="row">
     <div class="text">Scale</div>
     <input class="textfield" type="text" bind:value={watermarkScale} on:change={valuechanged} min="0" max="100" />
   </div>
-  <div>    
-    <input class="slider" type="range" bind:value={watermarkScale} min="0" max="100" />
+  <div>
+    <input class="slider" type="range" bind:value={watermarkScale} on:change={valuechanged} min="0" max="100" />
   </div>
   <div>Watermark location</div>
   <select bind:value={watermarkPosition} on:change={valuechanged}>
@@ -46,24 +46,22 @@
     padding-top: 3px;
   }
 
-
-  @media screen and (-webkit-min-device-pixel-ratio:0) {
-    input[type='range'] {
+  @media screen and (-webkit-min-device-pixel-ratio: 0) {
+    input[type="range"] {
       overflow: hidden;
       -webkit-appearance: none;
       background-color: white;
       border-radius: 5px;
     }
-    
-    input[type='range']::-webkit-slider-runnable-track {
+
+    input[type="range"]::-webkit-slider-runnable-track {
       height: 10px;
       -webkit-appearance: none;
       color: #13bba4;
       margin-top: -1px;
-      
     }
-    
-    input[type='range']::-webkit-slider-thumb {
+
+    input[type="range"]::-webkit-slider-thumb {
       width: 6px;
       -webkit-appearance: none;
       height: 10px;
@@ -71,5 +69,5 @@
       background: black;
       box-shadow: -80px 0 0 80px #1caeee;
     }
-}
+  }
 </style>
