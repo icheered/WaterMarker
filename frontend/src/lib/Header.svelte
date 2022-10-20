@@ -1,33 +1,29 @@
 <script>
-  export let title, version, authorLink, author;
+  export let version, authorLink, author;
 </script>
 
 <div class="topbar">
-  <div class="title">
-    {title}
+  <div class="author">
+    Made by <a  target="_blank" rel="noreferrer" href={authorLink}>{author}</a>
   </div>
   <div class="version">
     {version}
   </div>
-  <div class="author">
-    <a href={authorLink}>{author}</a>
-  </div>
+  
 </div>
-<div class="line" />
 
 <style>
   .topbar {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    text-align: left;
     height: 30px;
     color: black;
-  }
-  .line {
-    border-bottom: 1px solid white;
-    width: 100%;
+    padding: 5px;
   }
   a {
-    color: black;
+    color: #1caeee;
+    text-decoration: none;
   }
 </style>

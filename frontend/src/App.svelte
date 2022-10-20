@@ -8,15 +8,18 @@
   import Loader from "./lib/Loader.svelte";
 
   // CONSTANTS
-  const title = "WaterMarker";
-  const version = "1.2";
+  const version = "V1.3";
   const author = "ICheered";
   const authorLink = "https://icheered.nl";
 
   // PARAMETERS
-  // let sourceFolderPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/source";
+  //let sourceFolderPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/source";
   // let targetFolderPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/watermarked";
   // let watermarkPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/watermark.png";
+  
+  // let sourceFolderPath = "C:\\Users\\TJBakker\\Documents\\WaterMarker\\testfiles\\vertical";
+  // let targetFolderPath =  "C:\\Users\\TJBakker\\Documents\\WaterMarker\\testfiles\\watermarked";
+  // let watermarkPath =  "C:\\Users\\TJBakker\\Documents\\WaterMarker\\testfiles\\fotociewm.png";
 
   let sourceFolderPath = "";
   let targetFolderPath = "";
@@ -37,30 +40,28 @@
 
   let showLoader = false;
 
+  let showImagePreview = false;
+
   // FUNCTIONS
   let mainbuttontext = "";
+  let mainButtonDisabled = true;
   $: {
     if (sourceFolderPath == "" || targetFolderPath == "" || watermarkPath == "") {
       mainbuttontext = "Select source, target and watermark";
+      mainButtonDisabled = true;
     } else if (numberOfSourceFiles == 0) {
       mainbuttontext = "No images found in source folder!";
+      mainButtonDisabled = true;
     } else if (changedSettings) {
       mainbuttontext = "Generate preview";
+      mainButtonDisabled = false;
     } else {
       mainbuttontext = "Start processing!";
+      mainButtonDisabled = false;
     }
   }
 
   function generatePreview() {
-    // fetch("/home/tjbakker/Documents/dev/vscode/go/wails/testfiles/watermarked/DSC_0134.jpg")
-    //   .then((response) => response.blob())
-    //   .then((blob) => {
-    //     const reader = new FileReader();
-    //     reader.addEventListener("load", function () {
-    //       watermarkedpreviewImage.setAttribute("src", reader.result);
-    //     });
-    //     reader.readAsDataURL(blob);
-    //   });
     showLoader = true;
     console.log("Generating preview");
     FetchPreview(
@@ -78,6 +79,7 @@
         fetch(fetchpath)
           .then((response) => response.blob())
           .then((blob) => {
+            showImagePreview = true;
             const reader = new FileReader();
             reader.addEventListener("load", function () {
               watermarkedpreviewImage.setAttribute("src", reader.result);
@@ -133,7 +135,7 @@
       <div class="loadingtext">Processing image</div>
     </div>
   {/if}
-  <Header {title} {version} {author} {authorLink} />
+  <Header {version} {author} {authorLink} />
   <div class="maincontainer">
     <div class="settingscol">
       <div class="pathconfig">
@@ -145,6 +147,8 @@
             bind:numberOfSourceFiles
             bind:numberOfTargetFiles
             bind:watermarkpreviewImage
+            bind:changedSettings
+            bind:showImagePreview
           />
         </Card>
       </div>
@@ -156,8 +160,12 @@
     </div>
 
     <div class="mainview">
-      <img bind:this={watermarkedpreviewImage} src="" alt="Preview of the result" />
-      <Button bind:text={mainbuttontext} callback={mainButtonFunction} />
+      {#if showImagePreview == true} 
+        <img class="previewwindow" bind:this={watermarkedpreviewImage} src="" alt="Preview of the result" />
+      {:else}
+      <div class="previewwindow"/>
+      {/if}
+      <Button bind:text={mainbuttontext} bind:disabled={mainButtonDisabled} callback={mainButtonFunction} />
     </div>
   </div>
 </main>
@@ -190,13 +198,12 @@
     width: 75%;
     height: 100%;
   }
-  .mainview img {
-    max-width: 95%;
+  .previewwindow {
+    height: 489.25px;
     border-radius: 20px;
     margin: 10px;
     box-shadow: 0px 0px 20px #4d5056;
-    /* width: 733.875px; */
-    height: 489.25px;
+    text-align: center;
   }
 
   .settingscol {

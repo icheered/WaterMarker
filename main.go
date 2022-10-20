@@ -9,6 +9,8 @@ import (
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
+	"strings"
+	"runtime"
 )
 
 //go:embed all:frontend/dist
@@ -25,8 +27,14 @@ func NewFileLoader() *FileLoader {
 func (h *FileLoader) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	var err error
 	// requestedFilename := strings.TrimPrefix(req.URL.Path, "/")
-	requestedFilename := req.URL.Path
-	//requestedFilename = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/watermark.png"
+	// fmt.Printf("Vartype: %s\n", reflect.TypeOf(requestedFilename))
+
+	var requestedFilename string = ""
+	if runtime.GOOS == "windows" {
+		requestedFilename = strings.TrimPrefix(req.URL.Path, "/")
+	} else {
+		requestedFilename = req.URL.Path
+	}
 	println("Requesting file:", requestedFilename)
 	fileData, err := os.ReadFile(requestedFilename)
 	if err != nil {
@@ -43,7 +51,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:            "wails",
+		Title:            "WaterMarker",
 		Width:            1024,
 		Height:           650,
 		Assets:           assets,
