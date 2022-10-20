@@ -35,7 +35,7 @@
       if (result.length) {
         watermarkPath = result;
 
-        fetch("http://localhost:34115/"+ watermarkPath)
+        fetch(window.location+ watermarkPath)
           .then((response) => response.blob())
           .then((blob) => {
             const reader = new FileReader();
