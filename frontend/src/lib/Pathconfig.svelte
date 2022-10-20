@@ -35,7 +35,8 @@
       if (result.length) {
         watermarkPath = result;
 
-        fetch(window.location+ watermarkPath)
+        const fetchpath = navigator.platform.includes("Linux") ? watermarkPath : window.location + watermarkPath;
+        fetch(fetchpath)
           .then((response) => response.blob())
           .then((blob) => {
             const reader = new FileReader();

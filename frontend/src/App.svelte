@@ -74,7 +74,8 @@
       if (result.status && result.status == "error") {
         alert(result.message);
       } else if (result.status && result.status == "success") {
-        fetch(window.location+result.message)
+        const fetchpath = navigator.platform.includes("Linux") ? result.message : window.location + result.message;
+        fetch(fetchpath)
           .then((response) => response.blob())
           .then((blob) => {
             const reader = new FileReader();
