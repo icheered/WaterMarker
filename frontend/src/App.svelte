@@ -74,7 +74,7 @@
       if (result.status && result.status == "error") {
         alert(result.message);
       } else if (result.status && result.status == "success") {
-        fetch(result.message)
+        fetch("http://localhost:34115/"+result.message)
           .then((response) => response.blob())
           .then((blob) => {
             const reader = new FileReader();
