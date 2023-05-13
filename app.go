@@ -1,26 +1,18 @@
 package main
 
 import (
-	"context"
-
-	"errors"
+	"path"
 	"fmt"
+	"context"
 	"image"
 	"image/color"
-	"image/draw"
-	"image/jpeg"
-	"image/png"
-	"io/fs"
-	"log"
-	"os"
-	"path"
-	"strings"
 	"sync"
 	"time"
+	"os"
+	"errors"
+	"log"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-
-	"github.com/nfnt/resize"
 )
 
 // App struct
@@ -44,7 +36,7 @@ type returnStruct struct {
 	Message string `json:"message"`
 }
 
-func (a *App) SelectFile() string {
+func (a *App) SelectFile() (string, error) {
 	selection, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "Select File",
 		Filters: []runtime.FileFilter{
@@ -54,180 +46,105 @@ func (a *App) SelectFile() string {
 			},
 		},
 	})
-	//fmt.Print(selection)
 	if err != nil {
-		return ""
+		return "", err
 	}
 
-	return selection
+	return selection, nil
 }
 
-func (a *App) SelectFolder() string {
+func (a *App) SelectFolder() (string, error) {
 	selection, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
 		Title:   "Select Folder",
 		Filters: []runtime.FileFilter{},
 	})
 	if err != nil {
-		return "error"
+		return "", err
 	}
-	return selection
+	return selection, nil
 }
 
-func (a *App) GetNumberOfFiles(sourcefolderPath string) int {
-	files := getFiles(sourcefolderPath)
-	return len(files)
-}
-
-func (a *App) FetchPreview(watermarkPath, sourcefolderPath, targetfolderPath, watermarkPosition string, watermarkOpacity, watermarkScale float64) returnStruct {
-	watermark, err := openImage(watermarkPath)
+func (a *App) GetNumberOfFiles(sourceFolderPath string) (int, error) {
+	files, err := getFiles(sourceFolderPath)
 	if err != nil {
-		return returnStruct{Status: "error", Message: err.Error()}
+		return 0, err
 	}
+	return len(files), nil
+}
+
+func (a *App) FetchPreview(watermarkPath, sourceFolderPath, targetFolderPath, watermarkPosition string, watermarkOpacity, watermarkScale float64) (returnStruct, error) {
+	watermarkFileDescriptor, watermark, err := openImage(watermarkPath)
+	if err != nil {
+		return returnStruct{}, err
+	}
+	defer watermarkFileDescriptor.Close()
 
 	mask := image.NewUniform(color.Alpha{uint8(watermarkOpacity * 255)})
-	files := getFiles(sourcefolderPath)
+	files, err := getFiles(sourceFolderPath)
+	if err != nil {
+		return returnStruct{}, err
+	}
+	if len(files) == 0 {
+		return returnStruct{}, errors.New("no files found in source folder")
+	}
+
 	// Remove all but first file
 	file := files[0]
-	watermarkFile(file, watermark, mask, watermarkPosition, watermarkScale, sourcefolderPath, targetfolderPath)
+	if err := watermarkFile(file, watermark, mask, watermarkPosition, watermarkScale, sourceFolderPath, targetFolderPath); err != nil {
+		log.Printf("Failed to watermark file %s: %v", file.Name(), err)
+	}
 
-	fmt.Print("Done")
+	fmt.Println("Finished watermarking file: ", file.Name())
 
-	fpath := path.Join(targetfolderPath, file.Name())
-	return returnStruct{Status: "success", Message: fpath}
+	fpath := path.Join(targetFolderPath, file.Name())
+	return returnStruct{Status: "success", Message: fpath}, nil
 }
 
-func (a *App) ProcessImages(watermarkPath, sourcefolderPath, targetfolderPath, watermarkPosition string, watermarkOpacity, watermarkScale float64) returnStruct {
 
-	watermark, err := openImage(watermarkPath)
-	if err != nil {
-		return returnStruct{Status: "error", Message: err.Error()}
-	}
 
-	mask := image.NewUniform(color.Alpha{uint8(watermarkOpacity * 255)})
-	files := getFiles(sourcefolderPath)
 
-	fmt.Printf("Starting: Processing %d files\n\n", len(files))
+func (a *App) ProcessImages(watermarkPath, sourceFolderPath, targetFolderPath, watermarkPosition string, watermarkOpacity, watermarkScale float64) (string, error) {
+    watermarkFileDescriptor, watermark, err := openImage(watermarkPath)
+    if err != nil {
+        return "", err
+    }
+    defer watermarkFileDescriptor.Close()
 
-	var wg sync.WaitGroup
-	wg.Add(len(files))
-	start := time.Now()
+    mask := image.NewUniform(color.Alpha{uint8(watermarkOpacity * 255)})
+    files, err := getFiles(sourceFolderPath)
+    if err != nil {
+        return "", err
+    }
 
-	for _, file := range files {
-		go func(loopFile os.FileInfo) {
-			watermarkFile(loopFile, watermark, mask, watermarkPosition, watermarkScale, sourcefolderPath, targetfolderPath)
-			defer wg.Done()
-		}(file)
-	}
-	wg.Wait()
+    fmt.Printf("Starting: Processing %d files\n\n", len(files))
 
-	elapsed := time.Since(start)
-	fmt.Print("Done: ", elapsed)
+    var wg sync.WaitGroup
+    start := time.Now()
 
-	return returnStruct{Status: "success", Message: fmt.Sprintf("\nAll done! Editted %d files in %s", len(files), elapsed)}
+    MAX_PARALLEL_PROCESSES := 8
+    sem := make(chan struct{}, MAX_PARALLEL_PROCESSES)
+
+    for _, file := range files {
+        wg.Add(1)
+
+        go func(loopFile os.FileInfo) {
+            defer wg.Done()
+
+            sem <- struct{}{}
+            defer func() { <-sem }()
+
+            if err := watermarkFile(loopFile, watermark, mask, watermarkPosition, watermarkScale, sourceFolderPath, targetFolderPath); err != nil {
+                log.Printf("Failed to watermark file %s: %v", loopFile.Name(), err)
+            }
+
+        }(file)
+    }
+    wg.Wait()
+
+    elapsed := time.Since(start)
+    fmt.Printf("Done: Processed %d files in %s\n", len(files), elapsed)
+
+    return fmt.Sprintf("\nAll done! Edited %d files in %s", len(files), elapsed), nil
 }
 
-func watermarkFile(file os.FileInfo, watermark image.Image, mask image.Image, watermarkPosition string, watermarkScale float64, sourcefolderPath string, targetfolderPath string) {
-	if !(strings.HasSuffix(file.Name(), ".jpg")) && !(strings.HasSuffix(file.Name(), ".jpeg")) {
-		fmt.Printf("Skipping photo '%s' because it is not a .jpg or .jpeg\n", file.Name())
-		return
-	}
-	fmt.Printf("Processing photo '%s'\n", file.Name())
-	srcImage, err := openImage(path.Join(sourcefolderPath, file.Name()))
-	if err != nil {
-		return
-	}
-	imgSize := srcImage.Bounds()
 
-	imgheight := min(imgSize.Dx(), imgSize.Dy())
-	scaledWatermark := resize.Resize(0, uint(watermarkScale*float64(imgheight)), watermark, resize.NearestNeighbor)
-
-	wmSize := scaledWatermark.Bounds()
-	canvas := image.NewRGBA(imgSize)
-	var watermarkOffset image.Point
-	if watermarkPosition == "bottom-left" {
-		watermarkOffset = image.Point{0, imgSize.Max.Y - wmSize.Max.Y}
-	} else if watermarkPosition == "bottom-right" {
-		watermarkOffset = image.Point{imgSize.Max.X - wmSize.Max.X, imgSize.Max.Y - wmSize.Max.Y}
-	} else if watermarkPosition == "top-left" {
-		watermarkOffset = image.Point{0, 0}
-	} else if watermarkPosition == "top-right" {
-		watermarkOffset = image.Point{imgSize.Max.X - wmSize.Max.X, 0}
-	} else if watermarkPosition == "center" {
-		watermarkOffset = image.Point{(imgSize.Max.X - wmSize.Max.X) / 2, (imgSize.Max.Y - wmSize.Max.Y) / 2}
-	}
-
-	draw.Draw(canvas, imgSize, srcImage, image.Point{0, 0}, draw.Src)
-	draw.DrawMask(canvas, imgSize.Add(watermarkOffset), scaledWatermark, image.Point{0, 0}, mask, image.Point{0, 0}, draw.Over)
-	saveImage(canvas, targetfolderPath, file.Name())
-	fmt.Printf("Finished processing photo '%s'\n", file.Name())
-}
-
-func getFiles(dirname string) []os.FileInfo {
-	entries, err := os.ReadDir(dirname)
-	if err != nil {
-
-		log.Fatal(err)
-	}
-	infos := make([]fs.FileInfo, 0, len(entries))
-	for _, entry := range entries {
-		info, err := entry.Info()
-		if err != nil {
-			log.Fatal(err)
-		}
-		infos = append(infos, info)
-	}
-	return infos
-}
-
-func saveImage(img image.Image, pname, fname string) error {
-	fpath := path.Join(pname, fname)
-	outputFile, err := os.Create(fpath)
-
-	if err != nil {
-		log.Fatalf("failed to create: %s", err)
-	}
-	var opt jpeg.Options
-	opt.Quality = 95
-
-	jpeg.Encode(outputFile, img, &opt)
-	defer outputFile.Close()
-	return nil
-}
-
-func openImage(fname string) (image.Image, error) {
-	inputfile, err := os.Open(fname)
-	if err != nil {
-		fmt.Print("Failed to open: " + fname)
-		return image.NewUniform(color.Black), errors.New("Failed to open: " + fname)
-	}
-
-	var srcimage image.Image
-	if fname[len(fname)-4:] == ".png" {
-		srcimage, err = png.Decode(inputfile)
-		if err != nil {
-			return image.NewUniform(color.Black), errors.New("Failed to decode: " + fname)
-		}
-		defer inputfile.Close()
-	} else if fname[len(fname)-4:] == ".jpg" || fname[len(fname)-5:] == ".jpeg" {
-		srcimage, err = jpeg.Decode(inputfile)
-		if err != nil {
-			return image.NewUniform(color.Black), errors.New("Failed to decode: " + fname)
-		}
-		defer inputfile.Close()
-	} else {
-		return image.NewUniform(color.Black), errors.New("Failed to open: " + fname + ". Not PNG/JPG/JPEG")
-	}
-	return srcimage, nil
-}
-
-func min(vars ...int) int {
-	min := vars[0]
-
-	for _, i := range vars {
-		if min > i {
-			min = i
-		}
-	}
-
-	return min
-}

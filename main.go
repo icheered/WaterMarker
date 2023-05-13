@@ -2,15 +2,16 @@ package main
 
 import (
 	"embed"
-
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
+	"strings"
+	"context"
+
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
-	"strings"
-	"runtime"
 )
 
 //go:embed all:frontend/dist
@@ -26,9 +27,6 @@ func NewFileLoader() *FileLoader {
 
 func (h *FileLoader) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	var err error
-	// requestedFilename := strings.TrimPrefix(req.URL.Path, "/")
-	// fmt.Printf("Vartype: %s\n", reflect.TypeOf(requestedFilename))
-
 	var requestedFilename string = ""
 	if runtime.GOOS == "windows" {
 		requestedFilename = strings.TrimPrefix(req.URL.Path, "/")
@@ -48,6 +46,7 @@ func (h *FileLoader) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()
+	app.startup(context.Background())
 
 	// Create application with options
 	err := wails.Run(&options.App{
