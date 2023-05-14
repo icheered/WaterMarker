@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"bytes"
 	"image"
 	"image/color"
 	"image/draw"
@@ -11,6 +12,7 @@ import (
 	"path"
 	"strings"
 	"math"
+	"io/ioutil"
 
 	"github.com/nfnt/resize"
 )
@@ -91,20 +93,19 @@ func openImage(fname string) (*os.File, image.Image, error) {
 }
 
 func saveImage(img image.Image, pname, fname string) error {
-	fpath := path.Join(pname, fname)
-	outputFile, err := os.Create(fpath)
-	if err != nil {
-		return fmt.Errorf("failed to create: %s", err)
-	}
-	defer outputFile.Close()
+    fpath := path.Join(pname, fname)
 
-	var opt jpeg.Options
-	opt.Quality = 80
+    buf := new(bytes.Buffer)
+    var opt jpeg.Options
+    opt.Quality = 90
 
-	err = jpeg.Encode(outputFile, img, &opt)
-	if err != nil {
-		return fmt.Errorf("failed to encode jpeg: %s", err)
-	}
+    if err := jpeg.Encode(buf, img, &opt); err != nil {
+        return fmt.Errorf("failed to encode jpeg: %s", err)
+    }
 
-	return nil
+    if err := ioutil.WriteFile(fpath, buf.Bytes(), 0644); err != nil {
+        return fmt.Errorf("failed to write file: %s", err)
+    }
+
+    return nil
 }

@@ -6,7 +6,7 @@ export function FetchPreview(arg1:string,arg2:string,arg3:string,arg4:string,arg
 
 export function GetNumberOfFiles(arg1:string):Promise<number>;
 
-export function ProcessImages(arg1:string,arg2:string,arg3:string,arg4:string,arg5:number,arg6:number):Promise<string>;
+export function ProcessImages(arg1:string,arg2:string,arg3:string,arg4:string,arg5:number,arg6:number,arg7:number):Promise<string>;
 
 export function SelectFile():Promise<string>;
 

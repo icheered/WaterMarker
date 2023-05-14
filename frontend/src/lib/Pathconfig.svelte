@@ -20,10 +20,12 @@
   function selectSourceFolderPath() {
     SelectFolder().then((result) => {
       if (result.length) {
+        console.log("SourceFolderPath: ", result)
         sourceFolderPath = result;
         changedSettings = true;
         showImagePreview = false;
         GetNumberOfFiles(sourceFolderPath).then((result) => {
+          console.log("Number of files: ", result)
           numberOfSourceFiles = result;
         });
       }
@@ -32,9 +34,11 @@
   function selectTargetFolderPath() {
     SelectFolder().then((result) => {
       if (result.length) {
+        console.log("TargetFolderPath: ", result)
         targetFolderPath = result;
         GetNumberOfFiles(targetFolderPath).then((result) => {
           numberOfTargetFiles = result;
+          console.log("Number of files: ", result)
           if (numberOfTargetFiles) {
             if (
               confirm(
@@ -58,6 +62,7 @@
   function selectFilePath() {
     SelectFile().then((result) => {
       if (result.length) {
+        console.log("WatermarkPath: ", result)
         watermarkPath = result;
 
         const fetchpath = navigator.platform.includes("Linux")

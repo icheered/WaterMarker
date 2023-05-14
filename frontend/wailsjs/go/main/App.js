@@ -10,8 +10,8 @@ export function GetNumberOfFiles(arg1) {
   return window['go']['main']['App']['GetNumberOfFiles'](arg1);
 }
 
-export function ProcessImages(arg1, arg2, arg3, arg4, arg5, arg6) {
-  return window['go']['main']['App']['ProcessImages'](arg1, arg2, arg3, arg4, arg5, arg6);
+export function ProcessImages(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  return window['go']['main']['App']['ProcessImages'](arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 }
 
 export function SelectFile() {

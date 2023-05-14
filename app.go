@@ -103,7 +103,7 @@ func (a *App) FetchPreview(watermarkPath, sourceFolderPath, targetFolderPath, wa
 
 
 
-func (a *App) ProcessImages(watermarkPath, sourceFolderPath, targetFolderPath, watermarkPosition string, watermarkOpacity, watermarkScale float64) (string, error) {
+func (a *App) ProcessImages(watermarkPath, sourceFolderPath, targetFolderPath, watermarkPosition string, watermarkOpacity, watermarkScale, parallelProcesses float64) (string, error) {
     watermarkFileDescriptor, watermark, err := openImage(watermarkPath)
     if err != nil {
         return "", err
@@ -121,8 +121,7 @@ func (a *App) ProcessImages(watermarkPath, sourceFolderPath, targetFolderPath, w
     var wg sync.WaitGroup
     start := time.Now()
 
-    MAX_PARALLEL_PROCESSES := 8
-    sem := make(chan struct{}, MAX_PARALLEL_PROCESSES)
+    sem := make(chan struct{}, int(parallelProcesses))
 
     for _, file := range files {
         wg.Add(1)
@@ -135,7 +134,9 @@ func (a *App) ProcessImages(watermarkPath, sourceFolderPath, targetFolderPath, w
 
             if err := watermarkFile(loopFile, watermark, mask, watermarkPosition, watermarkScale, sourceFolderPath, targetFolderPath); err != nil {
                 log.Printf("Failed to watermark file %s: %v", loopFile.Name(), err)
-            }
+            } else {
+				runtime.EventsEmit(a.ctx, "imageProcessed", loopFile.Name())
+			}
 
         }(file)
     }

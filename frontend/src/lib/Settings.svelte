@@ -1,5 +1,5 @@
 <script>
-  export let watermarkOpacity, watermarkScale, watermarkPosition, changedSettings;
+  export let watermarkOpacity, watermarkScale, watermarkPosition, changedSettings, parallelProcesses;
 
   function valuechanged() {
     changedSettings = true;
@@ -22,6 +22,16 @@
   <div>
     <input class="slider" type="range" bind:value={watermarkScale} on:change={valuechanged} min="0" max="100" />
   </div>
+
+  <div class="row">
+    <div class="text">Parallel processes</div>
+    <input class="textfield" type="text" bind:value={parallelProcesses} min="1" max="64" />
+  </div>
+  <div>
+    <input class="slider" type="range" bind:value={parallelProcesses} min="1" max="64" />
+  </div>
+
+
   <div>Watermark location</div>
   <select bind:value={watermarkPosition} on:change={valuechanged}>
     <option value="bottom-right">Bottom-right</option>

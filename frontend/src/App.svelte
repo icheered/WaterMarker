@@ -6,9 +6,12 @@
   import Card from "./lib/Card.svelte";
   import Button from "./lib/Button.svelte";
   import Loader from "./lib/Loader.svelte";
+  import { onMount } from 'svelte';
+
+
 
   // CONSTANTS
-  const version = "V1.3";
+  const version = "V1.4";
   const author = "ICheered";
   const authorLink = "https://icheered.nl";
 
@@ -17,6 +20,9 @@
   // let targetFolderPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/watermarked";
   // let watermarkPath = "/home/tjbakker/Documents/dev/vscode/go/WaterMarker/testfiles/watermark.png";
   
+  // let sourceFolderPath = "E:\Photography\Events\Event_Euros_GEDR_2023\blok5\Subset";
+  // let targetFolderPath = "E:\Photography\Events\Event_Euros_GEDR_2023\blok5\Watermarked";
+  // let watermarkPath = "C:\Users\TJBakker\Downloads\FotocieStandaard.png";
   // let sourceFolderPath = "C:\\Users\\TJBakker\\Documents\\WaterMarker\\testfiles\\vertical";
   // let targetFolderPath =  "C:\\Users\\TJBakker\\Documents\\WaterMarker\\testfiles\\watermarked";
   // let watermarkPath =  "C:\\Users\\TJBakker\\Documents\\WaterMarker\\testfiles\\fotociewm.png";
@@ -28,6 +34,7 @@
   let watermarkOpacity = 80;
   let watermarkPosition = "bottom-right";
   let watermarkScale = 20;
+  let parallelProcesses = 8;
 
   // INFORMATION
   let changedSettings = true;
@@ -104,13 +111,12 @@
       targetFolderPath,
       watermarkPosition,
       watermarkOpacity / 100,
-      watermarkScale / 100
+      watermarkScale / 100,
+      parallelProcesses
     ).then((result) => {
       showLoader = false;
-      if (result.status && result.status == "error") {
-        alert(result.message);
-      } else {
-        alert(result.message);
+      if (result) {
+        alert(result);
       }
     });
   }
@@ -126,13 +132,23 @@
       processFiles();
     }
   }
+
+  // $: files = []
+  // onMount(async () => {
+  //       await Wails.Init();
+        
+  //       Wails.Events.On("imageProcessed", (filename) => {
+  //           console.log(`Image Processed: ${filename}`);
+  //           files.push(filename)
+  //       });
+  //   });
 </script>
 
 <main>
   {#if showLoader}
     <div class="loader">
       <Loader />
-      <div class="loadingtext">Processing image</div>
+      <div class="loadingtext">Processing images</div>
     </div>
   {/if}
   <Header {version} {author} {authorLink} />
@@ -154,7 +170,7 @@
       </div>
       <div class="settings">
         <Card backgroundcolor={"#0000ff"}>
-          <Settings bind:watermarkOpacity bind:watermarkScale bind:watermarkPosition bind:changedSettings />
+          <Settings bind:watermarkOpacity bind:watermarkScale bind:watermarkPosition bind:changedSettings bind:parallelProcesses />
         </Card>
       </div>
     </div>
